@@ -9,6 +9,8 @@ Author URI: https://kylebenk.com
 License: GPL2
 */
 
+include('controllers/home.php');
+include('controllers/game.php');
 include('controllers/questions.php');
 
 /**
