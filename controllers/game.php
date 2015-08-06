@@ -2,6 +2,61 @@
 
 add_filter('the_content', 'beans_game_content', 10, 1);
 
+
+/**
+ * Get the current game
+ *
+ * @access public
+ * @return void
+ */
+function beans_get_current_game() {
+
+	$current_game = get_option('beans_current_game');
+
+	return $current_game;
+
+}
+
+/**
+ * Save the current game
+ *
+ * @access public
+ * @return void
+ */
+function beans_save_current_game( $current_game ) {
+
+	$result = update_option('beans_current_game', $current_game);
+
+	return $result;
+
+}
+
+/**
+ * Adds a new game
+ *
+ * @access public
+ * @param mixed $current_game
+ * @return void
+ */
+function beans_add_current_game( $current_game ) {
+
+	return beans_save_current_game( $current_game );
+}
+
+/**
+ * Remove current game
+ *
+ * @access public
+ * @return void
+ */
+function beans_remove_current_game() {
+
+	$result = delete_option('beans_current_game');
+
+	return $result;
+
+}
+
 /**
  * Hooks into the_content filter and populates the game page
  *
@@ -17,84 +72,99 @@ function beans_game_content( $content ) {
 
 		beans_enqueue_files();
 
-		wp_enqueue_script('beans_wheel_js', plugins_url('../js/wheel.js', __FILE__));
+		$current_game = beans_get_current_game();
+		$categories = beans_get_categories();
 
-		$content .= '
-		<style>
-			.table * {
-				text-align:center;
-			}
-		</style>
-		<div class="beans-wrap">
-			<table class="table table-bordered">
-				<thead>
-					<tr>
-						<th>Category 1</th>
-						<th>Category 2</th>
-						<th>Category 3</th>
-						<th>Category 4</th>
-						<th>Category 5</th>
-						<th>Category 6</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>200</td>
-						<td>200</td>
-						<td>200</td>
-						<td>200</td>
-						<td>200</td>
-						<td>200</td>
-					</tr>
+		// Start Game
 
-					<tr>
-						<td>400</td>
-						<td>400</td>
-						<td>400</td>
-						<td>400</td>
-						<td>400</td>
-						<td>400</td>
-					</tr>
+		if ( $current_game === false ) {
 
-					<tr>
-						<td>600</td>
-						<td>600</td>
-						<td>600</td>
-						<td>600</td>
-						<td>600</td>
-						<td>600</td>
-					</tr>
+		}
 
-					<tr>
-						<td>800</td>
-						<td>800</td>
-						<td>800</td>
-						<td>800</td>
-						<td>800</td>
-						<td>800</td>
-					</tr>
+		// Current Game
 
-					<tr>
-						<td>1000</td>
-						<td>1000</td>
-						<td>1000</td>
-						<td>1000</td>
-						<td>1000</td>
-						<td>1000</td>
-					</tr>
-				</tbody>
-		    </table>
-		</div>
+		else {
 
-		<div id="venues" style="float: left; display:none;"><ul></ul></div>
+			wp_enqueue_script('beans_wheel_js', plugins_url('../js/wheel.js', __FILE__));
 
-		<div id="wheel" >
-		    <canvas id="canvas" width="1000" height="600"></canvas>
-		</div>
+			$content .= '
+			<style>
+				.table td,
+				.table thead th {
+					text-align:center;
+				}
+			</style>
+			<div class="beans-wrap">
+				<table class="table table-bordered">
+					<thead>
+						<tr>';
 
-		<div id="stats">
-		    <div id="counter"></div>
-		</div>';
+						foreach ( $categories as $category ) {
+							$content .= '<th>' . $category . '</th>';
+						}
+
+						$content .= '</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>200</td>
+							<td>200</td>
+							<td>200</td>
+							<td>200</td>
+							<td>200</td>
+							<td>200</td>
+						</tr>
+
+						<tr>
+							<td>400</td>
+							<td>400</td>
+							<td>400</td>
+							<td>400</td>
+							<td>400</td>
+							<td>400</td>
+						</tr>
+
+						<tr>
+							<td>600</td>
+							<td>600</td>
+							<td>600</td>
+							<td>600</td>
+							<td>600</td>
+							<td>600</td>
+						</tr>
+
+						<tr>
+							<td>800</td>
+							<td>800</td>
+							<td>800</td>
+							<td>800</td>
+							<td>800</td>
+							<td>800</td>
+						</tr>
+
+						<tr>
+							<td>1000</td>
+							<td>1000</td>
+							<td>1000</td>
+							<td>1000</td>
+							<td>1000</td>
+							<td>1000</td>
+						</tr>
+					</tbody>
+			    </table>
+			</div>
+
+			<div id="venues" style="float: left; display:none;"><ul></ul></div>
+
+			<div id="wheel" >
+			    <canvas id="canvas" width="1000" height="600"></canvas>
+			</div>
+
+			<div id="stats">
+			    <div id="counter"></div>
+			</div>';
+
+		}
 	}
 
 	return $content;
