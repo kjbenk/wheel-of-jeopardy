@@ -67,6 +67,25 @@ function beans_save_points( $points ) {
 }
 
 /**
+ * beans_validate_answer function.
+ *
+ * @access public
+ * @param mixed $answer
+ * @param mixed $questions
+ * @param mixed $question_id
+ * @return void
+ */
+function beans_validate_answer($answer, $questions, $question_id) {
+
+	if ( $questions[$question_id]['answer'] == $answer ) {
+		return true;
+	}
+
+	return false;
+
+}
+
+/**
  * Hooks into the_content filter and populates the questions page
  *
  * @access public
@@ -135,7 +154,7 @@ function beans_questions_content( $content ) {
 					 	$content .= '</select>
 					</div>
 
-					<div class="form-group">
+					<div class="form-group hidden">
 					 	<label for="beans_points_' . $i . '">Points</label>
     					<select class="form-control" id="beans_points_' . $i . '" name="beans_points_' . $i . '" value="' . $question['points'] . '">';
 						for ( $p = 0; $p < count($points); $p++ ) {
