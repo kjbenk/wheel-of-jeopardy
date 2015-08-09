@@ -29,12 +29,12 @@ jQuery(document).ready(function($){
 	    "392360": "Bankrupt",
 	    "2210952": "Lose Turn",
 	    "207306": "Spin Again",
-	    "41457": "Category 1",
-	    "101161": "Category 2",
-	    "257424": "Category 3",
-	    "512060": "Category 4",
-	    "66244": "Category 5",
-	    "352867": "Category 6",
+	    "41457": "Geography",
+	    "101161": "History",
+	    "257424": "Astronomy",
+	    "512060": "Geology",
+	    "66244": "Literacy",
+	    "352867": "Technology",
 	};
 
 	$(function() {
@@ -156,7 +156,40 @@ jQuery(document).ready(function($){
 
 	            $("#counter").html((wheel.frames / duration * 1000) + " FPS");
 
-	            console.log(wheel.segments.length - Math.floor((wheel.angleCurrent / (Math.PI * 2)) * wheel.segments.length) - 1);
+	            /*===============================================================
+		        * Add in logic to redirect after a spin
+		        ===============================================================*/
+
+		        var category = wheel.segments.length - Math.floor((wheel.angleCurrent / (Math.PI * 2)) * wheel.segments.length) - 1;
+		        var category_name = '';
+
+		        if ( category == 0 ) { 			// Opponent's Choice
+					category_name = 'Opponent\'s Choice';
+		        } else if ( category == 1 ) { 	// Geography
+					category_name = 'Geography';
+		        } else if ( category == 2 ) { 	// Literacy
+					category_name = 'Literacy';
+		        } else if ( category == 3 ) { 	// Player's Choice
+					category_name = 'Player\'s Choice';
+		        } else if ( category == 4 ) { 	// History
+					category_name = 'History';
+		        } else if ( category == 5 ) { 	// Free Spin
+					category_name = 'Free Spin';
+		        } else if ( category == 6 ) { 	// Spin Again
+					category_name = 'Spin Again';
+		        } else if ( category == 7 ) { 	// Astronomy
+					category_name = 'Astronomy';
+		        } else if ( category == 8 ) { 	// Technology
+					category_name = 'Technology';
+		        } else if ( category == 9 ) { 	// Bankrupt
+					category_name = 'Bankrupt';
+		        } else if ( category == 10 ) { 	// Geology
+					category_name = 'Geology';
+		        } else if ( category == 11 ) { 	// Lose Turn
+					category_name = 'Lose Turn';
+		        }
+
+		        window.location = window.location.origin + window.location.pathname + '?category=' + category_name;
 	        }
 
 	        // Display RPM

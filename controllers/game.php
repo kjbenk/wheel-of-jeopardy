@@ -2,61 +2,6 @@
 
 add_filter('the_content', 'beans_game_content', 10, 1);
 
-
-/**
- * Get the current game
- *
- * @access public
- * @return void
- */
-function beans_get_current_game() {
-
-	$current_game = get_option('beans_current_game');
-
-	return $current_game;
-
-}
-
-/**
- * Save the current game
- *
- * @access public
- * @return void
- */
-function beans_save_current_game( $current_game ) {
-
-	$result = update_option('beans_current_game', $current_game);
-
-	return $result;
-
-}
-
-/**
- * Adds a new game
- *
- * @access public
- * @param mixed $current_game
- * @return void
- */
-function beans_add_current_game( $current_game ) {
-
-	return beans_save_current_game( $current_game );
-}
-
-/**
- * Remove current game
- *
- * @access public
- * @return void
- */
-function beans_remove_current_game() {
-
-	$result = delete_option('beans_current_game');
-
-	return $result;
-
-}
-
 /**
  * Hooks into the_content filter and populates the game page
  *
@@ -281,9 +226,13 @@ function beans_game_content( $content ) {
 				}
 
 			</style>
-			<div class="beans-wrap">
+			<div class="beans-wrap">';
 
-				<div class="page-header">
+				if ( isset($_GET['category']) ) {
+					$content .= '<div class="alert alert-success" role="alert">Great Spin!  You landed on ' . $_GET['category'] . '</div>';
+				}
+
+				$content .= '<div class="page-header">
 					<h1>' . $current_player->display_name . ' its your turn! <small class="pull-right col-xs-3">' .
 						'<div>Turn: <span class="pull-right">' . $current_game['turns'] . '</span></div>' .
 						'<div>Round: <span class="pull-right">' . $current_game['round'] . '</span></div>' .
@@ -355,6 +304,32 @@ function beans_game_content( $content ) {
 								$points = 1000;
 							}
 
+							// Check what questions can be selected
+
+							$button_state = 'disabled';
+
+							// Categories
+
+							if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Geography' && $i%6 == 0 ) {
+								$button_state = '';
+							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'History' && $i%6 == 1 ) {
+								$button_state = '';
+							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Asttonomy' && $i%6 == 2 ) {
+								$button_state = '';
+							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Geology' && $i%6 == 3 ) {
+								$button_state = '';
+							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Literacy' && $i%6 == 4 ) {
+								$button_state = '';
+							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Technology' && $i%6 == 5 ) {
+								$button_state = '';
+							}
+
+							// Players choice or oponents choice
+
+							else if ( isset($_GET['category']) && ( urldecode($_GET['category']) == 'Player\'s Choice' || urldecode($_GET['category']) == 'Opponent\'s Choice' ) ) {
+								$button_state = '';
+							}
+
 							$question_popup = '<form method="get">
 							<div class="modal fade" id="' . $id . '-question-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top: 40px;background-color: rgba(0,0,0,0.8);">
 							  <div class="modal-dialog" role="document">
@@ -384,7 +359,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal">200</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>200</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 5 ) {
 									$content .= '</tr>';
@@ -396,7 +371,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal">400</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>400</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 11 ) {
 									$content .= '</tr>';
@@ -408,7 +383,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal">400</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>600</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 17 ) {
 									$content .= '</tr>';
@@ -420,7 +395,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal">800</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>800</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 23 ) {
 									$content .= '</tr>';
@@ -432,7 +407,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal">1000</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>1000</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 29 ) {
 									$content .= '</tr>';
@@ -459,7 +434,6 @@ function beans_game_content( $content ) {
 
 			// Check to move to next round
 
-/*
 			if ( $unanswered == false ) {
 
 				$current_game['turns'] = 0;
@@ -472,10 +446,63 @@ function beans_game_content( $content ) {
 				</script>
 				<?php
 			}
-*/
 
 		}
 	}
 
 	return $content;
+}
+
+/**
+ * Get the current game
+ *
+ * @access public
+ * @return void
+ */
+function beans_get_current_game() {
+
+	$current_game = get_option('beans_current_game');
+
+	return $current_game;
+
+}
+
+/**
+ * Save the current game
+ *
+ * @access public
+ * @return void
+ */
+function beans_save_current_game( $current_game ) {
+
+	$result = update_option('beans_current_game', $current_game);
+
+	return $result;
+
+}
+
+/**
+ * Adds a new game
+ *
+ * @access public
+ * @param mixed $current_game
+ * @return void
+ */
+function beans_add_current_game( $current_game ) {
+
+	return beans_save_current_game( $current_game );
+}
+
+/**
+ * Remove current game
+ *
+ * @access public
+ * @return void
+ */
+function beans_remove_current_game() {
+
+	$result = delete_option('beans_current_game');
+
+	return $result;
+
 }
