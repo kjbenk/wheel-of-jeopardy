@@ -20,7 +20,7 @@ function beans_game_content( $content ) {
 		$current_game = beans_get_current_game();
 		$categories = beans_get_categories();
 
-		//$current_game = false;
+		// $current_game = false;
 
 		// Start Game
 
@@ -78,17 +78,17 @@ function beans_game_content( $content ) {
 						array(
 							'id'			=> $_POST['player-1'],
 							'score'			=> '0',
-							'free_turns'	=> 0,
+							'free_spins'	=> 0,
 						),
 						array(
 							'id'			=> $_POST['player-2'],
 							'score'			=> '0',
-							'free_turns'	=> 0,
+							'free_spins'	=> 0,
 						),
 						array(
 							'id'			=> $_POST['player-3'],
 							'score'			=> '0',
-							'free_turns'	=> 0,
+							'free_spins'	=> 0,
 						)
 					),
 					'questions'	=> get_option('beans_questions')
@@ -146,6 +146,16 @@ function beans_game_content( $content ) {
 				$current_game['round'] = 1;
 			}
 
+			$next = 0;
+
+			if ( $current_game['players'][0]['id'] == $current_game['current_turn']['id'] ) {
+				$next = 1;
+			} else if ( $current_game['players'][1]['id'] == $current_game['current_turn']['id'] ) {
+				$next = 2;
+			} else {
+				$next = 0;
+			}
+
 			// Get all Game Questions
 
 			$questions = $current_game['questions'];
@@ -157,16 +167,6 @@ function beans_game_content( $content ) {
 				// Save this answer in current game questions
 
 				$current_game['questions'][$_GET['question']]['answered'] = true;
-
-				$next = 0;
-
-				if ( $current_game['players'][0]['id'] == $current_game['current_turn']['id'] ) {
-					$next = 1;
-				} else if ( $current_game['players'][1]['id'] == $current_game['current_turn']['id'] ) {
-					$next = 2;
-				} else {
-					$next = 0;
-				}
 
 				// Right
 
@@ -196,11 +196,12 @@ function beans_game_content( $content ) {
 					$current_game['questions'][$_GET['question']]['correct'] = false;
 					$current_game['current_turn'] = $current_game['players'][$next];
 					$current_game['turns']++;
-					beans_save_current_game( $current_game );
 
 					// Change player score
 
 					$current_game['players'][($next+2)%3]['score'] -= $_GET['points'];
+
+					beans_save_current_game( $current_game );
 
 					?>
 					<script type="text/javascript">
@@ -209,6 +210,53 @@ function beans_game_content( $content ) {
 					<?php
 				}
 
+			}
+
+			// Free turn
+
+			else if ( isset($_GET['category']) && urldecode($_GET['category']) == "Free Spin" ) {
+
+				$current_game['players'][($next+2)%3]['free_spins']++;
+				$current_game['current_turn'] = $current_game['players'][$next];
+				$current_game['turns']++;
+				beans_save_current_game( $current_game );
+
+				?>
+				<script type="text/javascript">
+					window.location = "<?php echo get_site_url(); ?>?p=15&message=free_spin";
+				</script>
+				<?php
+			}
+
+			// Lose turn
+
+			else if ( isset($_GET['category']) && urldecode($_GET['category']) == "Lose Turn" ) {
+
+				$current_game['current_turn'] = $current_game['players'][$next];
+				$current_game['turns']++;
+				beans_save_current_game( $current_game );
+
+				?>
+				<script type="text/javascript">
+					window.location = "<?php echo get_site_url(); ?>?p=15&message=lose_turn";
+				</script>
+				<?php
+			}
+
+			// Bankrupt
+
+			else if ( isset($_GET['category']) && urldecode($_GET['category']) == "Bankrupt" ) {
+
+				$current_game['current_turn'] = $current_game['players'][$next];
+				$current_game['turns']++;
+				$current_game['players'][($next+2)%3]['score'] = 0;
+				beans_save_current_game( $current_game );
+
+				?>
+				<script type="text/javascript">
+					window.location = "<?php echo get_site_url(); ?>?p=15&message=bankrupt";
+				</script>
+				<?php
 			}
 
 			$content .= '<style>
@@ -229,7 +277,7 @@ function beans_game_content( $content ) {
 			<div class="beans-wrap">';
 
 				if ( isset($_GET['category']) ) {
-					$content .= '<div class="alert alert-success" role="alert">Great Spin!  You landed on ' . $_GET['category'] . '</div>';
+					$content .= '<div class="alert alert-success" role="alert">Great Spin!  You landed on ' . stripcslashes(urldecode($_GET['category'])) . '</div>';
 				}
 
 				$content .= '<div class="page-header">
@@ -244,17 +292,17 @@ function beans_game_content( $content ) {
 				    	<div class="col-xs-4 ' . $player_1_current . '">
 				    		<h3 class="text-center">' . $player_1->display_name . '</h3>
 				    		<div><strong>Score:<strong> <span class="pull-right">' . $current_game['players'][0]['score'] . '</span></div>
-				    		<div><strong>Free Turns:<strong> <span class="pull-right">' . $current_game['players'][0]['free_turns'] . '</span></div>
+				    		<div><strong>Free Spins:<strong> <span class="pull-right">' . $current_game['players'][0]['free_spins'] . '</span></div>
 				    	</div>
 				    	<div class="col-xs-4 ' . $player_2_current . '">
 				    		<h3 class="text-center">' . $player_2->display_name . '</h3>
 				    		<div><strong>Score:<strong> <span class="pull-right">' . $current_game['players'][1]['score'] . '</span></div>
-				    		<div><strong>Free Turns:<strong> <span class="pull-right">' . $current_game['players'][1]['free_turns'] . '</span></div>
+				    		<div><strong>Free Spins:<strong> <span class="pull-right">' . $current_game['players'][1]['free_spins'] . '</span></div>
 						</div>
 				    	<div class="col-xs-4 ' . $player_3_current . '">
 				    		<h3 class="text-center">' . $player_3->display_name . '</h3>
 				    		<div><strong>Score:<strong> <span class="pull-right">' . $current_game['players'][2]['score'] . '</span></div>
-				    		<div><strong>Free Turns:<strong> <span class="pull-right">' . $current_game['players'][2]['free_turns'] . '</span></div>
+				    		<div><strong>Free Spins:<strong> <span class="pull-right">' . $current_game['players'][2]['free_spins'] . '</span></div>
 				    	</div>
 					</div>
 				</div>
@@ -314,7 +362,7 @@ function beans_game_content( $content ) {
 								$button_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'History' && $i%6 == 1 ) {
 								$button_state = '';
-							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Asttonomy' && $i%6 == 2 ) {
+							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Astronomy' && $i%6 == 2 ) {
 								$button_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Geology' && $i%6 == 3 ) {
 								$button_state = '';
@@ -326,12 +374,12 @@ function beans_game_content( $content ) {
 
 							// Players choice or oponents choice
 
-							else if ( isset($_GET['category']) && ( urldecode($_GET['category']) == 'Player\'s Choice' || urldecode($_GET['category']) == 'Opponent\'s Choice' ) ) {
+							else if ( isset($_GET['category']) && ( stripcslashes(urldecode($_GET['category'])) == "Player's Choice" || stripcslashes(urldecode($_GET['category'])) == "Opponent's Choice" ) ) {
 								$button_state = '';
 							}
 
 							$question_popup = '<form method="get">
-							<div class="modal fade" id="' . $id . '-question-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top: 40px;background-color: rgba(0,0,0,0.8);">
+							<div class="modal fade" id="' . $i . '-question-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top: 40px;background-color: rgba(0,0,0,0.8);">
 							  <div class="modal-dialog" role="document">
 							    <div class="modal-content">
 							      <div class="modal-header">
@@ -342,7 +390,7 @@ function beans_game_content( $content ) {
 							      	<p>' . $question['question'] . '</p>
 								  	<label>Answer</label>
 							      	<input type="text" name="answer" class="form-control"/>
-							      	<input type="hidden" name="question" value="' . $id . '"/>
+							      	<input type="hidden" name="question" value="' . $i . '"/>
 							      	<input type="hidden" name="points" value="' . $points . '"/>
 							      </div>
 							      <div class="modal-footer">
@@ -359,7 +407,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>200</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $i . '-question-modal" ' . $button_state . '>200</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 5 ) {
 									$content .= '</tr>';
@@ -371,7 +419,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>400</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $i . '-question-modal" ' . $button_state . '>400</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 11 ) {
 									$content .= '</tr>';
@@ -383,7 +431,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>600</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $i . '-question-modal" ' . $button_state . '>600</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 17 ) {
 									$content .= '</tr>';
@@ -395,7 +443,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>800</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $i . '-question-modal" ' . $button_state . '>800</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 23 ) {
 									$content .= '</tr>';
@@ -407,7 +455,7 @@ function beans_game_content( $content ) {
 									$content .= '<tr>';
 								}
 
-								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $id . '-question-modal" ' . $button_state . '>1000</button>' . $question_popup . '</td>';
+								$content .= '<td class="' . $answered_class . '"><button class="btn btn-link" data-toggle="modal" data-target="#' . $i . '-question-modal" ' . $button_state . '>1000</button>' . $question_popup . '</td>';
 
 								if ( $i%30 == 29 ) {
 									$content .= '</tr>';
