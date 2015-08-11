@@ -73,6 +73,45 @@ function beans_game_content( $content ) {
 
 			if ( isset($_POST['start-game-submit']) ) {
 
+				$questions = get_option('beans_questions');
+				$game_questions = array();
+
+				$geography = array();
+				$history = array();
+				$astronomy = array();
+				$geology = array();
+				$literacy = array();
+				$technology = array();
+
+				foreach ( $questions as $question ) {
+
+					if ( $question['category'] == 'Geography' ) {
+						$geography[] = $question;
+					} else if ( $question['category'] == 'History' ) {
+						$history[] = $question;
+					} else if ( $question['category'] == 'Astronomy' ) {
+						$astronomy[] = $question;
+					} else if ( $question['category'] == 'Geology' ) {
+						$geology[] = $question;
+					} else if ( $question['category'] == 'Literacy' ) {
+						$literacy[] = $question;
+					} else if ( $question['category'] == 'Technology' ) {
+						$technology[] = $question;
+					}
+
+				}
+
+				for ( $i = 0; $i < 60; $i += 6 ) {
+
+					$game_questions[$i]        = $geography[$i/6];
+					$game_questions[$i + 1]    = $history[$i/6];
+					$game_questions[$i + 2]    = $astronomy[$i/6];
+					$game_questions[$i + 3]    = $geology[$i/6];
+					$game_questions[$i + 4]    = $literacy[$i/6];
+					$game_questions[$i + 5]    = $technology[$i/6];
+
+				}
+
 				$current_game = array(
 					'players'	=> array(
 						array(
@@ -91,7 +130,7 @@ function beans_game_content( $content ) {
 							'free_spins'	=> 0,
 						)
 					),
-					'questions'	=> get_option('beans_questions')
+					'questions'	=> $game_questions
 				);
 
 				beans_save_current_game( $current_game );
@@ -156,9 +195,93 @@ function beans_game_content( $content ) {
 				$next = 0;
 			}
 
+			$current_player_id = ($next+2)%3;
+
 			// Get all Game Questions
 
 			$questions = $current_game['questions'];
+
+			// Redirect to question modal when user landed on category or selects category
+
+			if ( isset($_GET['category']) && $_GET['category'] != '' ) {
+
+				$category = urldecode($_GET['category']);
+
+				// Get next question in that category
+
+				for ( $i = 0; $i < 30 * $current_game['round']; $i += 6 ) {
+
+					if ( $category == 'Geography' && ( !isset($questions[$i]['answered']) ||
+						( isset($questions[$i]['answered']) && !$questions[$i]['answered'] ) ) ) {
+
+						?>
+						<script type="text/javascript">
+							window.location = "<?php echo get_site_url(); ?>?p=15&action=asnwer&question=<?php echo $i; ?>";
+						</script>
+						<?php
+
+					} else if ( $category == 'History' && ( !isset($questions[$i + 1]['answered']) ||
+						( isset($questions[$i + 1]['answered']) && !$questions[$i + 1]['answered'] ) ) ) {
+
+						?>
+						<script type="text/javascript">
+							window.location = "<?php echo get_site_url(); ?>?p=15&action=asnwer&question=<?php echo $i + 1; ?>";
+						</script>
+						<?php
+
+					} else if ( $category == 'Astronomy' && ( !isset($questions[$i + 2]['answered']) ||
+						( isset($questions[$i + 2]['answered']) && !$questions[$i + 2]['answered'] ) ) ) {
+
+						?>
+						<script type="text/javascript">
+							window.location = "<?php echo get_site_url(); ?>?p=15&action=asnwer&question=<?php echo $i + 2; ?>";
+						</script>
+						<?php
+
+					} else if ( $category == 'Geology' && ( !isset($questions[$i + 3]['answered']) ||
+						( isset($questions[$i + 3]['answered']) && !$questions[$i + 3]['answered'] ) ) ) {
+
+						?>
+						<script type="text/javascript">
+							window.location = "<?php echo get_site_url(); ?>?p=15&action=asnwer&question=<?php echo $i + 3; ?>";
+						</script>
+						<?php
+
+					} else if ( $category == 'Literacy' && ( !isset($questions[$i + 4]['answered']) ||
+						( isset($questions[$i + 4]['answered']) && !$questions[$i + 4]['answered'] ) ) ) {
+
+						?>
+						<script type="text/javascript">
+							window.location = "<?php echo get_site_url(); ?>?p=15&action=asnwer&question=<?php echo $i + 4; ?>";
+						</script>
+						<?php
+
+					} else if ( $category == 'Technology' && ( !isset($questions[$i + 5]['answered']) ||
+						( isset($questions[$i + 5]['answered']) && !$questions[$i + 5]['answered'] ) ) ) {
+
+						?>
+						<script type="text/javascript">
+							window.location = "<?php echo get_site_url(); ?>?p=15&action=asnwer&question=<?php echo $i + 5; ?>";
+						</script>
+						<?php
+
+					}
+				}
+			}
+
+			// Free Spin
+
+			if ( isset($_GET['action']) && $_GET['action'] == 'free-spin' && isset($_GET['player']) && $_GET['player'] != '' ) {
+				$current_game['players'][$current_player_id]['free_spins']--;
+				$current_game['turns']++;
+				beans_save_current_game( $current_game );
+
+				?>
+				<script type="text/javascript">
+					window.location = "<?php echo get_site_url(); ?>?p=15&message=free_spin";
+				</script>
+				<?php
+			}
 
 			// Validate answer
 
@@ -232,15 +355,44 @@ function beans_game_content( $content ) {
 
 			else if ( isset($_GET['category']) && urldecode($_GET['category']) == "Lose Turn" ) {
 
-				$current_game['current_turn'] = $current_game['players'][$next];
-				$current_game['turns']++;
-				beans_save_current_game( $current_game );
+				if ( !isset($_GET['free-spin']) && (int) $current_game['players'][($next+2)%3]['free_spins'] > 0 ) {
+					?>
+					<script type="text/javascript">
+						window.location = "<?php echo get_site_url(); ?>?p=15&free-spin=true";
+					</script>
+					<?php
+				} else if ( isset($_GET['free-spin']) && $_GET['free-spin'] == 'yes' ) {
 
-				?>
-				<script type="text/javascript">
-					window.location = "<?php echo get_site_url(); ?>?p=15&message=lose_turn";
-				</script>
-				<?php
+					$current_game['players'][($next+2)%3]['free_spins']--;
+					$current_game['turns']++;
+					beans_save_current_game( $current_game );
+
+					?>
+					<script type="text/javascript">
+						window.location = "<?php echo get_site_url(); ?>?p=15&message=free_spin";
+					</script>
+					<?php
+				} else if ( isset($_GET['free-spin']) && $_GET['free-spin'] == 'no' ) {
+					$current_game['current_turn'] = $current_game['players'][$next];
+					$current_game['turns']++;
+					beans_save_current_game( $current_game );
+
+					?>
+					<script type="text/javascript">
+						window.location = "<?php echo get_site_url(); ?>?p=15&message=lose_turn";
+					</script>
+					<?php
+				} else {
+					$current_game['current_turn'] = $current_game['players'][$next];
+					$current_game['turns']++;
+					beans_save_current_game( $current_game );
+
+					?>
+					<script type="text/javascript">
+						window.location = "<?php echo get_site_url(); ?>?p=15&message=lose_turn";
+					</script>
+					<?php
+				}
 			}
 
 			// Bankrupt
@@ -249,7 +401,11 @@ function beans_game_content( $content ) {
 
 				$current_game['current_turn'] = $current_game['players'][$next];
 				$current_game['turns']++;
-				$current_game['players'][($next+2)%3]['score'] = 0;
+
+				if ( (int) $current_game['players'][($next+2)%3]['score'] > 0 ) {
+					$current_game['players'][($next+2)%3]['score'] = 0;
+				}
+
 				beans_save_current_game( $current_game );
 
 				?>
@@ -258,6 +414,8 @@ function beans_game_content( $content ) {
 				</script>
 				<?php
 			}
+
+			$free_spins = $current_game['players'][($next+2)%3]['free_spins'];
 
 			$content .= '<style>
 				.table td,
@@ -311,7 +469,18 @@ function beans_game_content( $content ) {
 						<tr>';
 
 						foreach ( $categories as $category ) {
-							$content .= '<th>' . $category . '</th>';
+
+							$category_state = 'disabled';
+
+							if ( isset($_GET['category']) && urldecode($_GET['category']) == $category ) {
+								$category_state = '';
+							}
+
+							if ( isset($_GET['category']) && ( stripcslashes(urldecode($_GET['category'])) == "Player's Choice" || stripcslashes(urldecode($_GET['category'])) == "Opponent's Choice" )  ) {
+								$category_state = '';
+							}
+
+							$content .= '<th><a href="' . get_site_url() . '?p=15&category=' . $category . '" class="btn btn-link" ' . $category_state . '>' . $category . '</a></th>';
 						}
 
 						$content .= '</tr>
@@ -355,27 +524,28 @@ function beans_game_content( $content ) {
 							// Check what questions can be selected
 
 							$button_state = 'disabled';
+							$category_state = 'disabled';
 
 							// Categories
 
 							if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Geography' && $i%6 == 0 ) {
-								$button_state = '';
+								$category_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'History' && $i%6 == 1 ) {
-								$button_state = '';
+								$category_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Astronomy' && $i%6 == 2 ) {
-								$button_state = '';
+								$category_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Geology' && $i%6 == 3 ) {
-								$button_state = '';
+								$category_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Literacy' && $i%6 == 4 ) {
-								$button_state = '';
+								$category_state = '';
 							} else if ( isset($_GET['category']) && urldecode($_GET['category']) == 'Technology' && $i%6 == 5 ) {
-								$button_state = '';
+								$category_state = '';
 							}
 
 							// Players choice or oponents choice
 
 							else if ( isset($_GET['category']) && ( stripcslashes(urldecode($_GET['category'])) == "Player's Choice" || stripcslashes(urldecode($_GET['category'])) == "Opponent's Choice" ) ) {
-								$button_state = '';
+								$category_state = '';
 							}
 
 							$question_popup = '<form method="get">
@@ -393,8 +563,13 @@ function beans_game_content( $content ) {
 							      	<input type="hidden" name="question" value="' . $i . '"/>
 							      	<input type="hidden" name="points" value="' . $points . '"/>
 							      </div>
-							      <div class="modal-footer">
-							        <button type="submit" class="btn btn-default">Submit</button>
+							      <div class="modal-footer">';
+
+							      	if ( isset($free_spins) && (int) $free_spins > 0 ) {
+								  		$question_popup .= '<a href="' . get_site_url() . '?p=15&action=free-spin&player=' . $current_player_id . '" class="btn btn-success">Use Free Spin</a>';
+							      	}
+
+							        $question_popup .= '<button type="submit" class="btn btn-default">Submit</button>
 							      </div>
 							    </div>
 							  </div>
@@ -468,6 +643,25 @@ function beans_game_content( $content ) {
 
 					$content .= '</tbody>
 			    </table>
+
+			    <div class="modal fade" id="free-spin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top: 40px;background-color: rgba(0,0,0,0.8);">
+				  <div class="modal-dialog" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				        <h4 class="modal-title" id="myModalLabel">Free Spin</h4>
+				      </div>
+				      <div class="modal-body">
+				      	Do you want to use one of your free spins?
+				      </div>
+				      <div class="modal-footer">
+				      	<a href="' . get_site_url() . '?p=15&free-spin=no&category=' . urlencode('Lose Turn') . '" class="btn btn-default">No</button>
+				      	<a href="' . get_site_url() . '?p=15&free-spin=yes&category=' . urlencode('Lose Turn') . '" class="btn btn-success">Yes</a>
+				      </div>
+				    </div>
+				  </div>
+				</div>
+
 			</div>
 
 			<div id="venues" style="float: left; display:none;"><ul></ul></div>

@@ -1,5 +1,37 @@
 jQuery(document).ready(function($){
 
+	// Show question
+
+	if ( getUrlParameter('question') ) {
+		$('#' + getUrlParameter('question') + '-question-modal').modal();
+	}
+
+	// Show free spin
+
+	if ( getUrlParameter('free-spin') == 'true' ) {
+		$('#free-spin').modal();
+	}
+
+	/**
+	 * Get any query parameter from the URL
+	 *
+	 * @access public
+	 * @param mixed sParam
+	 * @return void
+	 */
+	function getUrlParameter(sParam) {
+	    var sPageURL = window.location.search.substring(1);
+	    var sURLVariables = sPageURL.split('&');
+	    for (var i = 0; i < sURLVariables.length; i++)
+	    {
+	        var sParameterName = sURLVariables[i].split('=');
+	        if (sParameterName[0] == sParam)
+	        {
+	            return sParameterName[1];
+	        }
+	    }
+	}
+
 	// Helpers
 	var shuffle = function(o) {
 	    for (var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
@@ -101,9 +133,9 @@ jQuery(document).ready(function($){
 	    // Cache of segments to colors
 	    maxSpeed: Math.PI / 16,
 
-	    upTime: 1000,
+	    upTime: 400,
 	    // How long to spin up for (in ms)
-	    downTime: 17000,
+	    downTime: 6800,
 	    // How long to slow down for (in ms)
 	    spinStart: 0,
 
